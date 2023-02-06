@@ -1,5 +1,7 @@
 const {createApp} = Vue;
-
+import pagination from "../components/pagination.js";
+import modalProduct from "../components/modal-product.js";
+import delModal from "../components/del-modal.js";
 
 let productModal = null;
 let delProductModal = null;
@@ -12,14 +14,14 @@ const app = createApp({
             tempProduct:{
                 imagesUrl:[],
             },
-            pages:{
-                current_page:1,
-                has_next:false,
-                has_pre:false,
-                total_pages:3,
-            }
+            pages:{},
 
         }
+    },
+    components:{
+        pagination,
+        modalProduct,
+        delModal,
     },
     methods: {
         checkLogin(){
@@ -28,16 +30,19 @@ const app = createApp({
                     this.getProducts();
                 })
                 .catch(err=>{
-                    alert(err.message);
+                    alert(err.response.data.message);
+                    window.location='login.js';
                 })
         },
-        getProducts(){
-            axios.get(`${url}api/${path}/admin/products`)
+        
+        getProducts(page){
+            axios.get(`${url}api/${path}/admin/products/?page=${page}`)
                 .then(res=>{
                     this.productList = res.data.products;
+                    this.pages= res.data.pagination;
                 })
                 .catch(err=>{
-                    alert(err.message);
+                    alert(err.response.data.message);
                 });
         },
         openModal(type,item){
@@ -57,6 +62,44 @@ const app = createApp({
                 delProductModal.show();
             }
         },
+        delProduct(){
+            axios.delete(`${url}api/${path}/admin/product/${this.tempProduct.id}`)
+                .then(res=>{
+                    alert(res.data.message);
+                    delProductModal.hide();
+                    this.getProducts();
+                })
+                .catch(err=>{
+                    alert(err.response.data.message);
+                })
+        },
+        updateProduct(){
+            if(this.isNew===true){
+                axios.post(`${url}api/${path}/admin/product`,{data:this.tempProduct})
+                    .then(res=>{
+                        alert(res.data.message);
+                        this.getProducts();
+                        productModal.hide();
+                    })
+                    .catch(err=>{
+                        alert(err.response.data.message);
+                    })
+            }else if(this.isNew===false){
+                axios.put(`${url}api/${path}/admin/product/${this.tempProduct.id}`,{data:this.tempProduct})
+                    .then(res=>{
+                        alert(res.data.message);
+                        this.getProducts();
+                        productModal.hide();
+                    })
+                    .catch(err=>{
+                        alert(err.response.data.message);
+                    })
+            }
+        },
+        createImg(){
+            this.product.imagesUrl=[];
+            this.product.imagesUrl.push('');
+        },
         
     },
     mounted() {
@@ -65,93 +108,13 @@ const app = createApp({
         //token 設置在 headers 內，是 axios 包裝好的語法
         axios.defaults.headers.common['Authorization'] = token;
         this.checkLogin();
-    },
-});
-app.component('pagination',{
-    props:['pages'],
-    template:`#pagination`,
-    methods: {
-        pagesAdd(item){
-            this.pages.current_page = item;
-        }
-    },
-})
-app.component('productModal',{
-    props:['isNew','product'],
-    template:'#productModal',
-    data(){
-        return{
-
-        }
-    },
-    methods:{
-        updateProduct(){
-            if(this.isNew===true){
-                axios.post(`${url}api/${path}/admin/product`,{data:this.product})
-                    .then(res=>{
-                        alert(res.data.message);
-                        this.$emit('update');
-                        this.hideModal();
-                    })
-                    .catch(err=>{
-                        alert(err.data.message);
-                    })
-            }else if(this.isNew===false){
-                const id = this.product.id;
-                axios.put(`${url}api/${path}/admin/product/${id}`,{data:this.product})
-                    .then(res=>{
-                        alert(res.data.message);
-                        this.$emit('update');
-                        this.hideModal();
-                    })
-                    .catch(err=>{
-                        alert(err.message);
-                    })
-            }
-        },
-        createImg(){
-            this.product.imagesUrl=[];
-            this.product.imagesUrl.push('');
-        },
-        openModal(){
-            productModal.show();
-        },
-        hideModal(){
-            productModal.hide();
-        }
-    },
-    mounted(){
         productModal = new bootstrap.Modal(document.getElementById('productModal'), {
             keyboard: false
           });
-    }
-});
-app.component('delProductModal',{
-    props:['delTempProduct'],
-    template:`#delProductModal`,
-    methods:{
-        delProduct(){
-            axios.delete(`${url}api/${path}/admin/product/${this.delTempProduct.id}`)
-                .then(res=>{
-                    alert(res.data.message);
-                    this.$emit('del');
-                    this.hideModal();
-                })
-                .catch(err=>{
-                    alert(err.response.data.message);
-                })
-        },
-        openModal(){
-            delProductModal.show();
-        },
-        hideModal(){
-            delProductModal.hide();
-        }
-    },
-    mounted(){
         delProductModal = new bootstrap.Modal(document.getElementById('delProductModal'), {
             keyboard: false
         });  
-    }
-})
+    },
+});
+
 app.mount('#app');
