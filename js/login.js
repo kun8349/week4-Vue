@@ -19,7 +19,7 @@ createApp({
                     window.location = "admin.html"
                 })
                 .catch(err=>{
-                    alert(err.response.data.message);
+                    window.location = 'index.html';
                 })
         },
     },

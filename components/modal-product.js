@@ -17,13 +17,13 @@ export default {
                             <div class="mb-4">
                                 <label class="form-label">主要圖片</label>
                                 <input type="text" class="form-control" placeholder="請輸入圖片網址" v-model="product.imageUrl">
-                                <img :src="product.imageUrl" :alt="主要圖片" class="img-fluid mt-3">
+                                <img :src="product.imageUrl" alt="主要圖片" class="img-fluid mt-3">
                             </div>
                             <div v-if="Array.isArray(product.imagesUrl)">
                                 <div class="mb-4" v-for="(img,key) in product.imagesUrl" :key="key+'img'">
                                     <label class="form-label">圖片網址</label>
                                     <input type="text" class="form-control" placeholder="請輸入圖片網址" v-model="product.imagesUrl[key]">
-                                    <img :src="img" :alt="次要圖片" class="img-fluid mt-3">
+                                    <img :src="img" alt="次要圖片" class="img-fluid mt-3">
                                 </div>
                                 <div v-if="!product.imagesUrl.length || product.imagesUrl[product.imagesUrl.length - 1]">
                                     <button type="button" class="btn btn-outline-primary btn-sm w-100" @click="product.imagesUrl.push('')">新增圖片</button>
